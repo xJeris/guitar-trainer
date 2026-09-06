@@ -25,6 +25,8 @@ Rough guide for someone practicing ~20-30 min/day:
 - Stage 2 (Open chords): 2-4 weeks
 - Stage 3 (Strumming + first songs): ongoing alongside Stage 2
 
-## How we'll work together
-- Tell me what stage/drill you're on and what's hard about it — I'll adjust the plan, not just hand you more content.
-- If a chord or transition is physically painful (not just hard) — that's a hand-position problem, flag it, don't push through.
+## How to use this curriculum
+- Adjust the plan to what's actually hard for you, don't just push through more content — if a
+  drill isn't clicking, spend more time on it before moving on.
+- If a chord or transition is physically painful (not just hard) — that's a hand-position problem.
+  Stop and fix your grip/posture, don't push through pain.

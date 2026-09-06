@@ -17,8 +17,8 @@ Pick 2-3 to actually work toward, don't try to learn everything at once:
 - "Wonderwall" — Oasis (once barre-ish shapes feel okay — capo helps a lot here)
 - "I'm Yours" — Jason Mraz (great for down-down-up-up-down-up pattern)
 
-Look up chord charts + strumming pattern for whichever you pick — I can also just write
-out the chord chart + lyrics timing directly if you tell me which song.
+Look up chord charts + strumming pattern for whichever you pick (Ultimate Guitar or similar
+tab sites are a good source).
 
 Once you've got a tab (from Ultimate Guitar or wherever), paste it into the app's **Tabs**
 screen or import it as a .txt file — it'll save to your local library so you can pull it
