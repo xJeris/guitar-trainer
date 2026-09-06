@@ -1,0 +1,14 @@
+{
+  "name": "guitar-practice-tools",
+  "version": "1.0.0",
+  "description": "Tuner, metronome, and chord/note recognition drills for beginner guitar practice.",
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^32.0.0"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+.node/
+
+# Personal dev notes, not meant for the public repo
+CLAUDE.md
+
+# User's personal tab library (created at runtime; not source/sample content)
+tabs/*
+!tabs/.gitkeep

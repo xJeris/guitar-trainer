@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self'" />
+<title>Guitar Practice Tools</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Guitar Practice Tools</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="tuner" role="tab" aria-selected="true">Tuner</button>
+      <button class="tab-btn" data-tab="metronome" role="tab" aria-selected="false">Metronome</button>
+      <button class="tab-btn" data-tab="drill" role="tab" aria-selected="false">Chord &amp; Note Drill</button>
+      <button class="tab-btn" data-tab="tabs" role="tab" aria-selected="false">Tabs</button>
+    </nav>
+    <button id="app-quit" type="button" class="btn-quit" title="Quit Guitar Practice Tools">Quit</button>
+  </header>
+
+  <main>
+    <!-- ===================== TUNER ===================== -->
+    <section id="tab-tuner" class="tab-panel active">
+      <div class="panel-card">
+        <h2>Tuner</h2>
+        <p class="hint">
+          Plug your guitar into your audio interface (or use a microphone placed near your amp),
+          and if your interface has a gain knob, turn it up until the signal light flickers green
+          (not red) when you pluck a string. Then pick your audio input from the dropdown below and
+          click <strong>Start Listening</strong>.
+        </p>
+
+        <div class="control-row">
+          <label for="audio-input-select">Audio input device:</label>
+          <select id="audio-input-select"></select>
+          <button id="tuner-refresh-devices" type="button" class="btn-secondary">Refresh</button>
+        </div>
+
+        <div class="control-row">
+          <button id="tuner-start" type="button" class="btn-primary">Start Listening</button>
+          <button id="tuner-stop" type="button" class="btn-secondary" disabled>Stop</button>
+          <span id="tuner-status" class="status-text">Not listening</span>
+        </div>
+
+        <div class="control-row">
+          <label for="tuner-level-bar">Input level:</label>
+          <div class="level-meter">
+            <div id="tuner-level-bar" class="level-meter-fill"></div>
+          </div>
+          <span id="tuner-level-text" class="level-text">0%</span>
+        </div>
+
+        <div class="tuner-display">
+          <div class="note-readout">
+            <span id="tuner-note">--</span>
+            <span id="tuner-freq" class="freq-text">0.0 Hz</span>
+          </div>
+
+          <div class="meter">
+            <div class="meter-scale">
+              <span>-50</span><span>-25</span><span class="meter-center-tick">0</span><span>+25</span><span>+50</span>
+            </div>
+            <div class="meter-track">
+              <div class="meter-center-line"></div>
+              <div id="meter-needle" class="meter-needle"></div>
+            </div>
+            <div id="tuner-cents" class="cents-text">0 cents</div>
+          </div>
+
+          <div class="string-targets">
+            <div class="string-target" data-note="E2">E2<span>low E</span></div>
+            <div class="string-target" data-note="A2">A2</div>
+            <div class="string-target" data-note="D3">D3</div>
+            <div class="string-target" data-note="G3">G3</div>
+            <div class="string-target" data-note="B3">B3</div>
+            <div class="string-target" data-note="E4">E4<span>high E</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== METRONOME ===================== -->
+    <section id="tab-metronome" class="tab-panel">
+      <div class="panel-card">
+        <h2>Metronome</h2>
+        <p class="hint">Set a tempo, hit Start, and strum along with the click. Start slow — accuracy before speed.</p>
+
+        <div class="control-row bpm-row">
+          <label for="bpm-slider">Tempo:</label>
+          <input type="range" id="bpm-slider" min="40" max="220" value="80" />
+          <input type="number" id="bpm-number" min="40" max="220" value="80" />
+          <span>BPM</span>
+        </div>
+
+        <div class="control-row">
+          <label for="beats-per-measure">Beats per measure:</label>
+          <select id="beats-per-measure">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <button id="metronome-toggle" type="button" class="btn-primary">Start</button>
+          <button id="tap-tempo" type="button" class="btn-secondary">Tap Tempo</button>
+        </div>
+
+        <div class="beat-indicator-row" id="beat-dots"></div>
+      </div>
+    </section>
+
+    <!-- ===================== DRILL ===================== -->
+    <section id="tab-drill" class="tab-panel">
+      <div class="panel-card">
+        <h2>Chord &amp; Note Recognition Drill</h2>
+        <p class="hint">
+          Uses the same audio input as the Tuner tab. Pick your device below if it isn't already
+          selected, click Start Listening, choose a drill mode, then play what's asked. For Chord
+          Drill, click "Calibrate Noise Floor" once and stay quiet for a few seconds first so room
+          noise (AC, fans, hum) doesn't get mistaken for a played chord.
+        </p>
+
+        <div class="control-row">
+          <label for="drill-audio-input-select">Audio input device:</label>
+          <select id="drill-audio-input-select"></select>
+        </div>
+
+        <div class="control-row">
+          <button id="drill-start" type="button" class="btn-primary">Start Listening</button>
+          <button id="drill-stop" type="button" class="btn-secondary" disabled>Stop</button>
+          <span id="drill-status" class="status-text">Not listening</span>
+        </div>
+
+        <div class="control-row">
+          <button id="drill-calibrate" type="button" class="btn-secondary" disabled>Calibrate Noise Floor</button>
+          <span id="drill-calibrate-status" class="status-text">Not calibrated (using default sensitivity)</span>
+        </div>
+
+        <div class="control-row mode-row">
+          <span>Mode:</span>
+          <label><input type="radio" name="drill-mode" value="note" checked /> Note Drill</label>
+          <label><input type="radio" name="drill-mode" value="chord" /> Chord Drill</label>
+          <label class="fretboard-toggle">
+            <input type="checkbox" id="drill-fretboard-toggle" checked />
+            Show fretboard
+          </label>
+        </div>
+
+        <div class="drill-target-card">
+          <div class="drill-target-label">Play this:</div>
+          <div id="drill-target" class="drill-target-value">--</div>
+          <div id="drill-target-sub" class="drill-target-sub"></div>
+          <div id="drill-fretboard" class="drill-fretboard"></div>
+          <button id="drill-next" type="button" class="btn-secondary">New Target</button>
+        </div>
+
+        <div id="drill-feedback" class="drill-feedback"></div>
+
+        <div id="chord-string-breakdown" class="chord-string-breakdown"></div>
+
+        <div class="score-row">
+          <div class="score-box"><span class="score-label">Score</span><span id="drill-score">0</span></div>
+          <div class="score-box"><span class="score-label">Streak</span><span id="drill-streak">0</span></div>
+          <div class="score-box"><span class="score-label">Best Streak</span><span id="drill-best-streak">0</span></div>
+          <button id="drill-reset-score" type="button" class="btn-secondary">Reset Score</button>
+        </div>
+      </div>
+    </section>
+    <!-- ===================== TABS / SONGS ===================== -->
+    <section id="tab-tabs" class="tab-panel">
+      <div class="panel-card tabs-panel-card">
+        <h2>Tabs</h2>
+        <p class="hint">
+          Paste plain-text ASCII guitar tab here (the 6-line-per-string format from sites like
+          Ultimate Guitar), or import a <code>.txt</code> file from disk. Saved tabs stay on this
+          computer between sessions.
+        </p>
+
+        <div class="tabs-layout">
+          <div class="tabs-library-col">
+            <div class="control-row">
+              <button id="tabs-new-btn" type="button" class="btn-primary">New / Paste Tab</button>
+              <button id="tabs-import-btn" type="button" class="btn-secondary">Import .txt File</button>
+            </div>
+            <div id="tabs-library-list" class="tabs-library-list">
+              <p class="tabs-empty-msg">No saved tabs yet.</p>
+            </div>
+          </div>
+
+          <div class="tabs-editor-col">
+            <div id="tabs-editor" class="tabs-editor">
+              <div class="control-row">
+                <label for="tabs-title-input">Title:</label>
+                <input type="text" id="tabs-title-input" placeholder="e.g. Wonderwall - Verse" />
+              </div>
+              <textarea id="tabs-content-input" class="tabs-textarea" spellcheck="false"
+                placeholder="e|--0--0--3--3--2--0--|&#10;B|--0--1--3--3--3--0--|&#10;G|--0--0--0--0--2--1--|&#10;D|--2--2--0--0--0--2--|&#10;A|--3--3--2--2--0--3--|&#10;E|-----------------3--|"></textarea>
+              <div class="control-row">
+                <button id="tabs-save-btn" type="button" class="btn-primary">Save Tab</button>
+                <button id="tabs-cancel-btn" type="button" class="btn-secondary">Clear</button>
+                <span id="tabs-save-status" class="status-text"></span>
+              </div>
+            </div>
+
+            <div id="tabs-viewer" class="tabs-viewer" style="display:none;">
+              <div class="control-row tabs-viewer-header">
+                <h3 id="tabs-viewer-title">Untitled</h3>
+                <span id="tabs-viewer-source" class="status-text"></span>
+              </div>
+              <pre id="tabs-viewer-content" class="tabs-pre"></pre>
+              <div class="control-row">
+                <label for="tabs-autoscroll-bpm">Auto-scroll speed (BPM-synced):</label>
+                <input type="number" id="tabs-autoscroll-bpm" min="40" max="220" value="80" />
+                <button id="tabs-autoscroll-toggle" type="button" class="btn-secondary">Start Auto-Scroll</button>
+              </div>
+              <div class="control-row">
+                <button id="tabs-edit-btn" type="button" class="btn-secondary">Edit</button>
+                <button id="tabs-delete-btn" type="button" class="btn-secondary">Delete</button>
+                <button id="tabs-close-btn" type="button" class="btn-secondary">Back to List</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>No audio is recorded or sent anywhere — everything runs locally in this window.</span>
+  </footer>
+
+  <script src="pitch-detect.js"></script>
+  <script src="audio-engine.js"></script>
+  <script src="tuner.js"></script>
+  <script src="metronome.js"></script>
+  <script src="drill.js"></script>
+  <script src="tabs-library.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
