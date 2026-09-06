@@ -1,9 +1,9 @@
 # Guitar Practice Tools
 
-A small Electron desktop app with four practice screens: a tuner, a metronome, a
-chord/note recognition drill, and a plain-text tab library — built to go alongside
-the chords-and-songs-first curriculum in `../curriculum/`. No auth, no backend,
-no telemetry — everything runs locally in the app window.
+A small Electron desktop app with five practice screens: a tuner, a metronome, a
+strum pattern trainer, a chord/note recognition drill, and a plain-text tab library —
+built to go alongside the chords-and-songs-first curriculum in `../curriculum/`. No
+auth, no backend, no telemetry — everything runs locally in the app window.
 
 ## Running it
 
@@ -54,7 +54,7 @@ Then, in the app:
    will fail.
 3. Click **Start Listening** on either tab to begin.
 
-## The four tools
+## The five tools
 
 - **Tuner** — Listens to a single plucked string and shows the detected note
   name, how many cents sharp/flat it is, and a needle meter, with the six
@@ -62,17 +62,45 @@ Then, in the app:
 - **Metronome** — Adjustable 40-220 BPM click (slider + number input, plus tap
   tempo) with a flashing visual beat indicator, so you can practice strumming
   in time without needing sound.
+- **Strum Pattern Trainer** — Pick a strumming pattern (or build your own) and
+  it plays a distinct sound per stroke — downstroke, upstroke, and a muted
+  "chunk" — with a matching visual flash, so you can practice the actual
+  down/up/mute rhythm of a strumming pattern instead of just a plain click.
+  Three built-in patterns (straight downstrokes, the classic
+  down-down-up-up-down-up pop/rock pattern, and a muting variant) plus a
+  **Custom** pattern: click any of the 8 slots to cycle it through Down →
+  Up → Mute → Rest. No audio input needed — like the Metronome, it doesn't
+  listen to your guitar at all, it's playback only.
 - **Chord & Note Drill** — Note mode asks you to play a specific string/fret
-  and confirms when it hears the right pitch; Chord mode names a beginner
-  chord (Em, Am, C, G, D, Em7, Am7, A, E), listens to your strum, and gives
-  approximate per-string feedback on which notes sounded and which may be
-  buzzing or muted. Tracks a simple score and streak for the session.
+  and confirms when it hears the right pitch; Chord mode names a chord,
+  listens to your strum, and gives approximate per-string feedback on which
+  notes sounded and which may be buzzing or muted. A **Difficulty** dropdown
+  (Beginner → Expert) controls how much of the fretboard/chord vocabulary is
+  in play — see "Difficulty tiers" below. Tracks a simple score and streak
+  for the session.
 - **Tabs** — A local library for plain-text ASCII guitar tab (the 6-line
   per-string format from sites like Ultimate Guitar). Paste tab text directly
   or import a `.txt` file, give it a title, and it's saved to disk so it's
   still there next time you open the app. Includes an optional BPM-synced
   auto-scroll while viewing a tab. This is a viewer/library only — it doesn't
   parse or interpret fret numbers.
+
+## Difficulty tiers (Chord & Note Drill)
+
+Each tier is cumulative — picking a harder tier still includes everything from
+the easier tiers below it, so you'll still see familiar targets mixed in.
+
+| Tier | Notes | Chords |
+|---|---|---|
+| Beginner | Open strings only | Em, Am, C |
+| Novice | + frets 1-3 | + G, D, Em7, Am7 |
+| Intermediate | + frets 4-7 | + A, E, D7, G7, Dm |
+| Advanced | + frets 8-12 | + F, B, Bm, F#m (first barre chords) |
+| Expert | + frets 13-15 | + movable barre shapes further up the neck (C-shape/G-shape barre, Cm, F#) |
+
+Barre chords only show up once you pick Advanced or Expert — if you're
+following the curriculum's Stage 1-3 order, Beginner/Novice/Intermediate cover
+everything you need without them.
 
 ## How the audio analysis works (so it's not a black box)
 
@@ -106,12 +134,13 @@ app/
       main.js       # Electron entry point, window creation, tabs IPC handlers
       preload.js     # contextBridge: exposes window.tabsApi to the renderer
     renderer/
-      index.html         # tab layout for all four screens
+      index.html         # tab layout for all five screens
       styles.css          # all styling (dark theme, single stylesheet)
       pitch-detect.js      # autocorrelation pitch detection (shared)
       audio-engine.js      # getUserMedia + AnalyserNode wrapper (shared)
       tuner.js             # Tuner tab logic
       metronome.js         # Metronome tab logic
+      strum-trainer.js     # Strum Pattern Trainer tab logic
       drill.js             # Chord & Note Drill tab logic
       tabs-library.js      # Tabs/Songs tab logic (paste/import/save/view)
       app.js               # tab switching + shared device-list setup

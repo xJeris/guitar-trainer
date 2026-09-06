@@ -12,6 +12,7 @@
     <nav class="tabs" role="tablist">
       <button class="tab-btn active" data-tab="tuner" role="tab" aria-selected="true">Tuner</button>
       <button class="tab-btn" data-tab="metronome" role="tab" aria-selected="false">Metronome</button>
+      <button class="tab-btn" data-tab="strum" role="tab" aria-selected="false">Strum Trainer</button>
       <button class="tab-btn" data-tab="drill" role="tab" aria-selected="false">Chord &amp; Note Drill</button>
       <button class="tab-btn" data-tab="tabs" role="tab" aria-selected="false">Tabs</button>
     </nav>
@@ -111,6 +112,45 @@
       </div>
     </section>
 
+    <!-- ===================== STRUM TRAINER ===================== -->
+    <section id="tab-strum" class="tab-panel">
+      <div class="panel-card">
+        <h2>Strum Pattern Trainer</h2>
+        <p class="hint">
+          Pick a strumming pattern, hit Start, and strum along — each slot plays a distinct sound
+          for downstroke, upstroke, and muted "chunk" so you can hear (and see) the direction to
+          play. No audio input needed; this doesn't listen to your guitar.
+        </p>
+
+        <div class="control-row bpm-row">
+          <label for="strum-bpm-slider">Tempo:</label>
+          <input type="range" id="strum-bpm-slider" min="40" max="220" value="80" />
+          <input type="number" id="strum-bpm-number" min="40" max="220" value="80" />
+          <span>BPM</span>
+        </div>
+
+        <div class="control-row">
+          <label for="strum-preset-select">Pattern:</label>
+          <select id="strum-preset-select">
+            <option value="quarter_downs">All downstrokes (quarters)</option>
+            <option value="pop_rock">Down-Down-Up-Up-Down-Up</option>
+            <option value="with_mute">Down-Up-Mute-Up-Down-Up</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <p id="strum-custom-hint" class="hint" style="display:none;">
+          Click a slot to cycle it: Down &rarr; Up &rarr; Mute &rarr; Rest &rarr; Down...
+        </p>
+
+        <div class="control-row">
+          <button id="strum-toggle" type="button" class="btn-primary">Start</button>
+        </div>
+
+        <div class="strum-slots-row" id="strum-slots"></div>
+      </div>
+    </section>
+
     <!-- ===================== DRILL ===================== -->
     <section id="tab-drill" class="tab-panel">
       <div class="panel-card">
@@ -146,6 +186,17 @@
             <input type="checkbox" id="drill-fretboard-toggle" checked />
             Show fretboard
           </label>
+        </div>
+
+        <div class="control-row">
+          <label for="drill-tier-select">Difficulty:</label>
+          <select id="drill-tier-select">
+            <option value="beginner">Beginner</option>
+            <option value="novice">Novice</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced (includes barre chords)</option>
+            <option value="expert">Expert (includes barre chords)</option>
+          </select>
         </div>
 
         <div class="drill-target-card">
@@ -235,6 +286,7 @@
   <script src="audio-engine.js"></script>
   <script src="tuner.js"></script>
   <script src="metronome.js"></script>
+  <script src="strum-trainer.js"></script>
   <script src="drill.js"></script>
   <script src="tabs-library.js"></script>
   <script src="app.js"></script>

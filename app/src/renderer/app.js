@@ -16,6 +16,7 @@
         // in the background.
         Tuner.stop();
         Metronome.stop();
+        StrumTrainer.stop();
         Drill.stop();
         if (window.TabsLibrary) window.TabsLibrary.stop();
 
@@ -69,6 +70,7 @@
       // cleanly rather than relying on process teardown to do it.
       Tuner.stop();
       Metronome.stop();
+      StrumTrainer.stop();
       Drill.stop();
       if (window.TabsLibrary) window.TabsLibrary.stop();
       window.appControl.quit();
@@ -80,6 +82,7 @@
     setupQuit();
     Tuner.init();
     Metronome.init();
+    StrumTrainer.init();
     Drill.init();
     if (window.TabsLibrary) window.TabsLibrary.init();
     await setupDeviceLists();

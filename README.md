@@ -1,8 +1,9 @@
 # Guitar Trainer
 
 A free, local-first practice toolkit for beginner guitar: a small Electron desktop
-app (tuner, metronome, chord/note recognition drill, and a tab library) plus a
-markdown curriculum that teaches **chords and songs first, not music theory**.
+app (tuner, metronome, strum pattern trainer, chord/note recognition drill, and a
+tab library) plus a markdown curriculum that teaches **chords and songs first, not
+music theory**.
 
 No accounts, no cloud, no telemetry — everything runs on your machine.
 
@@ -11,14 +12,15 @@ No accounts, no cloud, no telemetry — everything runs on your machine.
 ```
 guitar-trainer/
   curriculum/     A chords-and-songs-first lesson plan (plain markdown)
-  app/            The Electron practice app (tuner, metronome, drill, tabs)
+  app/            The Electron practice app (tuner, metronome, strum trainer,
+                  chord/note drill, tabs)
   tabs/           Your saved tab library lives here once you start using the app
 ```
 
 - **[curriculum/](curriculum/00-overview.md)** — start here if you're brand new to
   guitar. No prior music theory assumed.
 - **[app/](app/README.md)** — the desktop app itself; see that README for setup,
-  audio input notes, and a tour of each screen.
+  audio input notes, difficulty tiers, and a tour of each screen.
 
 ## Quick start
 
@@ -35,7 +37,7 @@ On Windows, you can instead just double-click `launch.bat` in the repo root —
 it runs `npm install` on first launch and then starts the app for you.
 
 See [app/README.md](app/README.md) for details on selecting an audio input
-(USB interface or plain microphone both work) and what each of the four
+(USB interface or plain microphone both work) and what each of the five
 screens does.
 
 ## Philosophy

@@ -32,9 +32,10 @@ have yet and will just cause frustration. They come after Stage 3.
 ## Goals to move on
 - [ ] All 5 core chords (Em, Am, C, G, D) ring clean individually
 - [ ] Can switch between any two adjacent-in-list chords in under 1 second at 70bpm
-- [ ] Chord-recognition drill in the app passes at "medium" difficulty (randomized chord prompts)
+- [ ] Chord Drill in the app passes comfortably at the "Novice" difficulty tier
+  (randomized prompts across Em, Am, C, G, D, Em7, Am7)
 
 ## Use the app for
-- Chord recognition (says a chord name, listens for correct shape/clean ring)
+- Chord Drill (says a chord name, listens for correct shape/clean ring) — set the
+  Difficulty dropdown to Beginner or Novice for this stage's chord set
 - Metronome, ramping tempo per drill
-- Switching-drill mode: alternates between two named chords on a beat

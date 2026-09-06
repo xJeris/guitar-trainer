@@ -4,7 +4,9 @@ const Drill = (() => {
   const engine = new AudioEngine();
   let rafId = null;
   let mode = 'note';
+  let tier = 'beginner';
   let currentTarget = null;
+  const SAVED_TIER_KEY = 'guitar-app:drill-tier';
 
   let score = 0;
   let streak = 0;
@@ -55,50 +57,124 @@ const Drill = (() => {
     }
   }
 
-  // Beginner note-drill targets: open strings + a few easy fretted notes,
-  // named as string + fret so a total beginner knows exactly what to play.
-  // `string` is 1-6 (1 = high E, matching standard fretboard-diagram
-  // convention) and `fret` is 0 for open. Used to draw the fretboard dot.
-  // `finger` is the standard left-hand finger for fretted notes (1=index,
-  // 2=middle, 3=ring, 4=pinky), null for open strings (no finger needed).
-  const NOTE_TARGETS = [
-    { label: 'Low E string, open (E2)', note: 'E2', string: 6, fret: 0, finger: null },
-    { label: 'A string, open (A2)', note: 'A2', string: 5, fret: 0, finger: null },
-    { label: 'D string, open (D3)', note: 'D3', string: 4, fret: 0, finger: null },
-    { label: 'G string, open (G3)', note: 'G3', string: 3, fret: 0, finger: null },
-    { label: 'B string, open (B3)', note: 'B3', string: 2, fret: 0, finger: null },
-    { label: 'High E string, open (E4)', note: 'E4', string: 1, fret: 0, finger: null },
-    { label: 'A string, 2nd fret (B2)', note: 'B2', string: 5, fret: 2, finger: 2 },
-    { label: 'D string, 2nd fret (E3)', note: 'E3', string: 4, fret: 2, finger: 2 },
-    { label: 'G string, 2nd fret (A3)', note: 'A3', string: 3, fret: 2, finger: 2 }
-  ];
+  // Open-string pitch per string number (1 = high E .. 6 = low E), used to
+  // derive every fretted note's name below rather than hand-listing them.
+  const OPEN_STRING_NOTES = ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'];
+  const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const STRING_LABELS = ['High E', 'B', 'G', 'D', 'A', 'Low E'];
 
-  // Beginner chord set with approximate note names per string actually
-  // sounded in the open-position voicing (low to high). Muted/skipped
-  // strings are omitted. This is intentionally simple/approximate per the
-  // task scope — good enough for directional feedback, not exact.
-  //
-  // `shape` gives the standard open-position fingering for the fretboard
-  // diagram: one entry per string, ordered string 1-6 = high E, B, G, D, A,
-  // low E. Fret number, 0 = open, null = muted/not strummed. This is
-  // separate from `notes` (which drives audio judging) since a couple of
-  // chords here are voiced with a repeated/octave note that doesn't map
-  // 1:1 to a single fret shape.
-  // `fingers` parallels `shape` one-for-one: standard beginner left-hand
-  // finger (1=index, 2=middle, 3=ring, 4=pinky) for each fretted note, null
-  // for open/muted strings. Common textbook fingering, not the only valid
-  // option, but a reasonable default for someone learning the shape fresh.
-  const CHORD_TARGETS = {
-    Em:  { label: 'E minor', notes: ['E2', 'B2', 'E3', 'G3', 'B3', 'E4'], shape: [0, 0, 0, 2, 2, 0], fingers: [null, null, null, 3, 2, null] },
-    Am:  { label: 'A minor', notes: ['A2', 'E3', 'A3', 'C4', 'E4'], shape: [0, 1, 2, 2, 0, null], fingers: [null, 1, 2, 3, null, null] },
-    C:   { label: 'C major', notes: ['C3', 'E3', 'G3', 'C4', 'E4'], shape: [0, 1, 0, 2, 3, null], fingers: [null, 1, null, 2, 3, null] },
-    G:   { label: 'G major', notes: ['G2', 'B2', 'D3', 'G3', 'B3', 'G4'], shape: [3, 0, 0, 0, 2, 3], fingers: [4, null, null, null, 2, 3] },
-    D:   { label: 'D major', notes: ['D3', 'A3', 'D4', 'F#4'], shape: [2, 3, 2, 0, null, null], fingers: [2, 3, 1, null, null, null] },
-    Em7: { label: 'E minor 7', notes: ['E2', 'B2', 'D3', 'G3', 'B3', 'E4'], shape: [0, 0, 0, 0, 2, 0], fingers: [null, null, null, null, 2, null] },
-    Am7: { label: 'A minor 7', notes: ['A2', 'E3', 'G3', 'C4', 'E4'], shape: [0, 1, 0, 2, 0, null], fingers: [null, 1, null, 2, null, null] },
-    A:   { label: 'A major', notes: ['A2', 'E3', 'A3', 'C#4', 'E4'], shape: [0, 2, 2, 2, 0, null], fingers: [null, 3, 2, 1, null, null] },
-    E:   { label: 'E major', notes: ['E2', 'B2', 'E3', 'G#3', 'B3', 'E4'], shape: [0, 0, 1, 2, 2, 0], fingers: [null, null, 1, 2, 3, null] }
+  function noteAtFret(openNote, fret) {
+    const m = /^([A-G]#?)(-?\d+)$/.exec(openNote);
+    const [, name, octaveStr] = m;
+    const chromaIdx = CHROMATIC.indexOf(name);
+    const midi = (parseInt(octaveStr, 10) + 1) * 12 + chromaIdx + fret;
+    const newName = CHROMATIC[((midi % 12) + 12) % 12];
+    const newOctave = Math.floor(midi / 12) - 1;
+    return `${newName}${newOctave}`;
+  }
+
+  // Standard beginner left-hand finger per fret position (1=index, 2=middle,
+  // 3=ring, 4=pinky), following one-finger-per-fret position playing. Not
+  // the only valid fingering, but a reasonable default for a drill target.
+  function fingerForFret(fret) {
+    if (fret === 0) return null;
+    return Math.min(fret, 4);
+  }
+
+  function noteTarget(string, fret) {
+    const note = noteAtFret(OPEN_STRING_NOTES[string - 1], fret);
+    const label = fret === 0
+      ? `${STRING_LABELS[string - 1]} string, open (${note})`
+      : `${STRING_LABELS[string - 1]} string, fret ${fret} (${note})`;
+    return { label, note, string, fret, finger: fingerForFret(fret) };
+  }
+
+  // Note-drill targets grouped by tier and fret range. Note detection
+  // (autocorrelation) has no real accuracy ceiling by fret position, so
+  // difficulty here is purely about fretboard range and how far from open
+  // position the note is.
+  const NOTE_TIER_FRET_RANGES = {
+    beginner: [0, 0],
+    novice: [0, 3],
+    intermediate: [0, 7],
+    advanced: [0, 12],
+    expert: [0, 15]
   };
+
+  function buildNoteTargets(fretRange) {
+    const [minFret, maxFret] = fretRange;
+    const targets = [];
+    for (let string = 1; string <= 6; string++) {
+      for (let fret = minFret; fret <= maxFret; fret++) {
+        targets.push(noteTarget(string, fret));
+      }
+    }
+    return targets;
+  }
+
+  // Chord set with approximate note names per string actually sounded in
+  // each voicing (low to high). Muted/skipped strings are omitted from
+  // `notes`. This is intentionally simple/approximate per the task scope —
+  // good enough for directional feedback, not exact.
+  //
+  // `shape` gives the fingering for the fretboard diagram: one entry per
+  // string, ordered string 1-6 = high E, B, G, D, A, low E. Fret number,
+  // 0 = open, null = muted/not strummed. `baseFret` is the lowest fretted
+  // position in the shape (1 for open-position chords), used to decide the
+  // fretboard diagram's display window for movable/barre shapes higher up
+  // the neck. This is separate from `notes` (which drives audio judging)
+  // since a couple of chords are voiced with a repeated/octave note that
+  // doesn't map 1:1 to a single fret shape.
+  // `fingers` parallels `shape` one-for-one: standard left-hand finger
+  // (1=index, 2=middle, 3=ring, 4=pinky) for each fretted note, null for
+  // open/muted strings. Common textbook fingering, not the only valid
+  // option, but a reasonable default for someone learning the shape fresh.
+  // `barre` (optional) marks a barre-fingering hint for the diagram: the
+  // fret index (1=finger) that spans multiple strings.
+  const CHORD_TARGETS = {
+    // Beginner (Stage 2, first half)
+    Em:  { tier: 'beginner', label: 'E minor', notes: ['E2', 'B2', 'E3', 'G3', 'B3', 'E4'], shape: [0, 0, 0, 2, 2, 0], fingers: [null, null, null, 3, 2, null], baseFret: 1 },
+    Am:  { tier: 'beginner', label: 'A minor', notes: ['A2', 'E3', 'A3', 'C4', 'E4'], shape: [0, 1, 2, 2, 0, null], fingers: [null, 1, 2, 3, null, null], baseFret: 1 },
+    C:   { tier: 'beginner', label: 'C major', notes: ['C3', 'E3', 'G3', 'C4', 'E4'], shape: [0, 1, 0, 2, 3, null], fingers: [null, 1, null, 2, 3, null], baseFret: 1 },
+
+    // Novice (rest of Stage 2's core set)
+    G:   { tier: 'novice', label: 'G major', notes: ['G2', 'B2', 'D3', 'G3', 'B3', 'G4'], shape: [3, 0, 0, 0, 2, 3], fingers: [4, null, null, null, 2, 3], baseFret: 1 },
+    D:   { tier: 'novice', label: 'D major', notes: ['D3', 'A3', 'D4', 'F#4'], shape: [2, 3, 2, 0, null, null], fingers: [2, 3, 1, null, null, null], baseFret: 1 },
+    Em7: { tier: 'novice', label: 'E minor 7', notes: ['E2', 'B2', 'D3', 'G3', 'B3', 'E4'], shape: [0, 0, 0, 0, 2, 0], fingers: [null, null, null, null, 2, null], baseFret: 1 },
+    Am7: { tier: 'novice', label: 'A minor 7', notes: ['A2', 'E3', 'G3', 'C4', 'E4'], shape: [0, 1, 0, 2, 0, null], fingers: [null, 1, null, 2, null, null], baseFret: 1 },
+
+    // Intermediate: remaining open-position chords, no barre yet
+    A:   { tier: 'intermediate', label: 'A major', notes: ['A2', 'E3', 'A3', 'C#4', 'E4'], shape: [0, 2, 2, 2, 0, null], fingers: [null, 3, 2, 1, null, null], baseFret: 1 },
+    E:   { tier: 'intermediate', label: 'E major', notes: ['E2', 'B2', 'E3', 'G#3', 'B3', 'E4'], shape: [0, 0, 1, 2, 2, 0], fingers: [null, null, 1, 2, 3, null], baseFret: 1 },
+    D7:  { tier: 'intermediate', label: 'D dominant 7', notes: ['D3', 'A3', 'C4', 'F#4'], shape: [2, 1, 2, 0, null, null], fingers: [2, 1, 3, null, null, null], baseFret: 1 },
+    G7:  { tier: 'intermediate', label: 'G dominant 7', notes: ['G2', 'B2', 'D3', 'G3', 'B3', 'F4'], shape: [1, 0, 0, 0, 2, 3], fingers: [1, null, null, null, 2, 3], baseFret: 1 },
+    Dm:  { tier: 'intermediate', label: 'D minor', notes: ['D3', 'A3', 'D4', 'F4'], shape: [1, 3, 2, 0, null, null], fingers: [1, 3, 2, null, null, null], baseFret: 1 },
+
+    // Advanced: first barre shapes, deliberately gated behind an explicit
+    // tier choice rather than shown by default — see curriculum Stage 2/3,
+    // which defers barre chords until hand strength catches up.
+    F:   { tier: 'advanced', label: 'F major (barre, fret 1)', notes: ['F2', 'C3', 'F3', 'A3', 'C4', 'F4'], shape: [1, 1, 2, 3, 3, 1], fingers: [1, 1, 2, 4, 3, 1], baseFret: 1, barre: 1 },
+    B:   { tier: 'advanced', label: 'B major (A-shape barre, fret 2)', notes: ['B2', 'F#3', 'B3', 'D#4', 'F#4'], shape: [2, 4, 4, 4, 2, null], fingers: [1, 3, 4, 2, 1, null], baseFret: 2, barre: 2 },
+    Bm:  { tier: 'advanced', label: 'B minor (A-shape barre, fret 2)', notes: ['B2', 'F#3', 'B3', 'D4', 'F#4'], shape: [2, 3, 4, 4, 2, null], fingers: [1, 2, 4, 3, 1, null], baseFret: 2, barre: 2 },
+    'F#m': { tier: 'advanced', label: 'F# minor (barre, fret 2)', notes: ['F#2', 'C#3', 'F#3', 'A3', 'C#4', 'F#4'], shape: [2, 2, 2, 4, 4, 2], fingers: [1, 1, 1, 3, 4, 1], baseFret: 2, barre: 2 },
+
+    // Expert: movable barre shapes further up the neck
+    Cbarre: { tier: 'expert', label: 'C major (A-shape barre, fret 3)', notes: ['C3', 'G3', 'C4', 'E4', 'G4'], shape: [3, 5, 5, 5, 3, null], fingers: [1, 3, 4, 2, 1, null], baseFret: 3, barre: 3 },
+    Gbarre: { tier: 'expert', label: 'G major (E-shape barre, fret 3)', notes: ['G2', 'D3', 'G3', 'B3', 'D4', 'G4'], shape: [3, 3, 4, 5, 5, 3], fingers: [1, 1, 2, 4, 3, 1], baseFret: 3, barre: 3 },
+    Cm:  { tier: 'expert', label: 'C minor (barre, fret 3)', notes: ['C3', 'G3', 'C4', 'D#4', 'G4'], shape: [3, 3, 5, 5, 4, null], fingers: [1, 1, 3, 4, 2, null], baseFret: 3, barre: 3 },
+    'F#': { tier: 'expert', label: 'F# major (E-shape barre, fret 2)', notes: ['F#2', 'C#3', 'F#3', 'A#3', 'C#4', 'F#4'], shape: [2, 2, 3, 4, 4, 2], fingers: [1, 1, 2, 4, 3, 1], baseFret: 2, barre: 2 }
+  };
+
+  const TIER_ORDER = ['beginner', 'novice', 'intermediate', 'advanced', 'expert'];
+
+  // A tier includes chords from its own level and every level below it, so
+  // e.g. "intermediate" still drills Em/Am/C alongside its own new chords.
+  function chordNamesForTier(tier) {
+    const maxIdx = TIER_ORDER.indexOf(tier);
+    return Object.keys(CHORD_TARGETS).filter(
+      (name) => TIER_ORDER.indexOf(CHORD_TARGETS[name].tier) <= maxIdx
+    );
+  }
 
   let els = {};
   let showFretboard = true;
@@ -112,6 +188,7 @@ const Drill = (() => {
       calibrateBtn: document.getElementById('drill-calibrate'),
       calibrateStatus: document.getElementById('drill-calibrate-status'),
       modeRadios: document.querySelectorAll('input[name="drill-mode"]'),
+      tierSelect: document.getElementById('drill-tier-select'),
       targetEl: document.getElementById('drill-target'),
       targetSubEl: document.getElementById('drill-target-sub'),
       nextBtn: document.getElementById('drill-next'),
@@ -127,10 +204,18 @@ const Drill = (() => {
   }
 
   // ---- Fretboard diagram ----
-  // Small SVG diagram, low-fret open-position view (frets 0-4). Draws
-  // either a single dot (note mode) or one dot per fretted/open string plus
-  // an "x" for muted strings (chord mode). Purely visual aid for beginners;
+  // Small SVG diagram showing a fixed-width window of FRET_COUNT frets.
+  // Draws either a single dot (note mode) or one dot per fretted/open
+  // string plus an "x" for muted strings (chord mode). Purely visual aid;
   // has no bearing on audio judging.
+  //
+  // No one can stretch further than about a 4-5 fret span with one hand, so
+  // rather than widening the diagram for higher-tier targets up the neck,
+  // we keep the same visual width and instead slide a "window": the lowest
+  // fretted position in the current target becomes the diagram's leftmost
+  // slot, and the fret-number labels along the bottom are relabeled to show
+  // the real fret numbers for that window (e.g. "8 9 10 11" instead of
+  // always "1 2 3 4"). The nut is only drawn when the window starts at 0.
 
   const FRET_COUNT = 4;
   const NUT_X = 90;
@@ -146,9 +231,13 @@ const Drill = (() => {
     return TOP_Y + (stringNum - 1) * STRING_SPACING;
   }
 
-  function fretX(fretNum) {
+  // windowStart is the real fret number shown at diagram slot 1 when
+  // windowed (0 = unwindowed, nut shown, fret N sits in slot N).
+  // fretNum is the dot's real fret number.
+  function fretX(fretNum, windowStart) {
     if (fretNum === 0) return NUT_X - 22;
-    return NUT_X + (fretNum - 0.5) * FRET_SPACING;
+    const slot = windowStart === 0 ? fretNum : fretNum - windowStart + 1;
+    return NUT_X + (slot - 0.5) * FRET_SPACING;
   }
 
   function svgEl(tag, attrs) {
@@ -157,17 +246,30 @@ const Drill = (() => {
     return el;
   }
 
+  // Picks the diagram's fret window so every dot (ignoring open/muted
+  // strings) fits within FRET_COUNT slots, anchored as low as possible.
+  function windowStartFor(dots) {
+    const fretted = dots.map((d) => d.fret).filter((f) => f !== null && f > 0);
+    if (fretted.length === 0) return 0;
+    const minFret = Math.min(...fretted);
+    // Keep the nut visible if everything fits within the first window.
+    if (Math.max(...fretted) <= FRET_COUNT) return 0;
+    return minFret;
+  }
+
   function buildFretboardSvg(dots) {
+    const windowStart = windowStartFor(dots);
     const svg = svgEl('svg', {
       viewBox: `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`,
       width: SVG_WIDTH,
       height: SVG_HEIGHT
     });
 
-    // Nut (thick line at fret 0).
+    // Nut (thick line at fret 0) only when the window starts at the nut;
+    // otherwise a plain fret wire marks the window's left edge.
     svg.appendChild(svgEl('line', {
       x1: NUT_X, x2: NUT_X, y1: stringY(1), y2: stringY(6),
-      class: 'fretboard-nut'
+      class: windowStart === 0 ? 'fretboard-nut' : 'fretboard-fret-wire'
     }));
 
     // Fret wires.
@@ -193,13 +295,14 @@ const Drill = (() => {
       svg.appendChild(nameLabel);
     }
 
-    // Fret number labels below the board.
+    // Fret number labels below the board, reflecting the real fret numbers
+    // for the current window (not always 1-4).
     for (let f = 1; f <= FRET_COUNT; f++) {
       const x = NUT_X + (f - 0.5) * FRET_SPACING;
       const label = svgEl('text', {
         x, y: stringY(6) + 28, class: 'fretboard-fret-label', 'text-anchor': 'middle'
       });
-      label.textContent = String(f);
+      label.textContent = String(windowStart === 0 ? f : windowStart + f - 1);
       svg.appendChild(label);
     }
 
@@ -207,8 +310,8 @@ const Drill = (() => {
     dots.forEach(({ string, fret, state, text }) => {
       const y = stringY(string);
       if (fret === null) {
-        // Muted string: small "x" to the left of the nut.
-        const x = fretX(0) - 16;
+        // Muted string: small "x" to the left of the nut/window edge.
+        const x = (windowStart === 0 ? fretX(0, 0) : NUT_X) - 16;
         const mark = svgEl('text', {
           x, y: y + 6, class: 'fretboard-fret-label fretboard-muted-marker',
           'text-anchor': 'middle'
@@ -220,11 +323,11 @@ const Drill = (() => {
       if (fret === 0) {
         // Open string: ring to the left of the nut.
         svg.appendChild(svgEl('circle', {
-          cx: fretX(0), cy: y, r: 10, class: 'fretboard-open-marker'
+          cx: fretX(0, 0), cy: y, r: 10, class: 'fretboard-open-marker'
         }));
         return;
       }
-      const x = fretX(fret);
+      const x = fretX(fret, windowStart);
       const dotClass = 'fretboard-dot' + (state ? ` ${state}` : '');
       svg.appendChild(svgEl('circle', { cx: x, cy: y, r: 13, class: dotClass }));
       if (text) {
@@ -264,16 +367,32 @@ const Drill = (() => {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
+  // Picks randomly from arr, excluding a value equal to prev (by key) when
+  // arr has more than one option — avoids the same target appearing twice
+  // in a row, which random selection would otherwise do often enough to
+  // notice.
+  function pickRandomExcluding(arr, prev, keyFn) {
+    if (arr.length <= 1 || prev === undefined) return pickRandom(arr);
+    const filtered = arr.filter((item) => keyFn(item) !== prev);
+    return filtered.length > 0 ? pickRandom(filtered) : pickRandom(arr);
+  }
+
   function newTarget() {
     els.chordBreakdown.innerHTML = '';
     setFeedback('', '');
 
+    const prevKey = currentTarget
+      ? (currentTarget.type === 'note' ? currentTarget.note : currentTarget.name)
+      : undefined;
+
     if (mode === 'note') {
-      currentTarget = { type: 'note', ...pickRandom(NOTE_TARGETS) };
+      const targets = buildNoteTargets(NOTE_TIER_FRET_RANGES[tier]);
+      const picked = pickRandomExcluding(targets, prevKey, (t) => t.note);
+      currentTarget = { type: 'note', ...picked };
       els.targetEl.textContent = currentTarget.note;
       els.targetSubEl.textContent = currentTarget.label;
     } else {
-      const chordName = pickRandom(Object.keys(CHORD_TARGETS));
+      const chordName = pickRandomExcluding(chordNamesForTier(tier), prevKey, (name) => name);
       const chordInfo = CHORD_TARGETS[chordName];
       currentTarget = { type: 'chord', name: chordName, ...chordInfo };
       els.targetEl.textContent = chordName;
@@ -537,6 +656,13 @@ const Drill = (() => {
     cacheEls();
     updateScoreUI();
     showFretboard = els.fretboardToggle.checked;
+
+    const savedTier = localStorage.getItem(SAVED_TIER_KEY);
+    if (savedTier && TIER_ORDER.includes(savedTier)) {
+      tier = savedTier;
+      els.tierSelect.value = tier;
+    }
+
     newTarget();
 
     const savedFloor = loadSavedNoiseFloor();
@@ -559,6 +685,11 @@ const Drill = (() => {
           newTarget();
         }
       });
+    });
+    els.tierSelect.addEventListener('change', () => {
+      tier = els.tierSelect.value;
+      localStorage.setItem(SAVED_TIER_KEY, tier);
+      newTarget();
     });
     els.fretboardToggle.addEventListener('change', () => {
       showFretboard = els.fretboardToggle.checked;

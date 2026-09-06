@@ -9,6 +9,11 @@ you don't need all 5 chords mastered to start this, just Em/Am/C.
    3-4 strings, don't dig in
 3. Add muting: rest strumming hand lightly on strings for a percussive "chunk" between chords
 
+The app's **Strum Pattern Trainer** screen has all 3 of these as built-in presets — it
+plays a distinct sound per stroke (down/up/mute) instead of a plain click, so you can
+practice the actual direction/rhythm, not just timing. There's also a **Custom** preset
+if you want to build a different pattern than these three.
+
 ## First songs (only need Em, Am, C, G, D — no barre chords)
 Pick 2-3 to actually work toward, don't try to learn everything at once:
 - "Horse with No Name" — America (just Em and D7/Em vamp, great first song)
@@ -36,5 +41,4 @@ up again without re-finding it each time.
 
 ## Use the app for
 - Metronome (ramp tempo as changes get automatic)
-- Recording mode: record yourself via your mic/audio interface, play back — your ear will catch
-  timing/buzz issues faster than trying to self-assess while playing
+- Strum Pattern Trainer (practice the down/up/mute rhythm directly, see above)

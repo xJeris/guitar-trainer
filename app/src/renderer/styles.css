@@ -537,6 +537,49 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 20px rgba(61, 220, 132, 0.85);
 }
 
+/* ---------------- Strum Pattern Trainer ---------------- */
+
+.strum-slots-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.strum-slot {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, var(--led-off) 0%, #1a1512 100%);
+  border: 2px solid var(--border);
+  color: var(--text-dim);
+  font-size: 20px;
+  font-weight: 800;
+  transition: background-color 0.05s, border-color 0.05s, box-shadow 0.05s, transform 0.05s;
+  cursor: default;
+}
+
+.strum-slot[data-symbol="D"] { color: var(--accent); }
+.strum-slot[data-symbol="U"] { color: var(--good); }
+.strum-slot[data-symbol="X"] { color: var(--bad); }
+
+button.strum-slot:not(:disabled) {
+  cursor: pointer;
+}
+
+button.strum-slot:not(:disabled):hover {
+  border-color: var(--accent-2);
+}
+
+.strum-slot.flash {
+  background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+  border-color: var(--accent-2);
+  box-shadow: 0 0 18px rgba(255, 138, 30, 0.85);
+  transform: scale(1.1);
+  color: #1a1000;
+}
+
 /* ---------------- Drill ---------------- */
 
 .mode-row {
